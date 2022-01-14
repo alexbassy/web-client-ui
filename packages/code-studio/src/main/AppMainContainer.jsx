@@ -3,7 +3,6 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import { CSSTransition } from 'react-transition-group';
 import { connect } from 'react-redux';
-import { withRouter } from 'react-router-dom';
 import shortid from 'shortid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -16,7 +15,6 @@ import {
 import Dashboard, {
   DEFAULT_DASHBOARD_ID,
   getDashboardData,
-  LayoutUtils,
 } from '@deephaven/dashboard';
 import {
   ChartEvent,
@@ -95,7 +93,6 @@ export class AppMainContainer extends Component {
     this.handlePaste = this.handlePaste.bind(this);
     this.hydrateChart = this.hydrateChart.bind(this);
     this.hydrateGrid = this.hydrateGrid.bind(this);
-    this.openNotebookFromURL = this.openNotebookFromURL.bind(this);
 
     this.goldenLayout = null;
     this.importElement = React.createRef();
@@ -205,53 +202,6 @@ export class AppMainContainer extends Component {
 
   deinitWidgets() {
     this.widgetListenerRemover?.();
-  }
-
-  openNotebookFromURL() {
-    const { match } = this.props;
-    const { notebookPath } = match.params;
-
-    if (notebookPath) {
-      const fileMetadata = {
-        id: `/${notebookPath}`,
-        itemName: `/${notebookPath}`,
-      };
-
-      const { session, sessionConfig } = this.props;
-      const language = sessionConfig.type;
-      const notebookSettings = {
-        value: null,
-        language,
-      };
-
-      const panelConfig = {
-        props: { panelState: { fileMetadata } },
-      };
-
-      const notebookStack = LayoutUtils.getStackForConfig(
-        this.goldenLayout.root,
-        panelConfig
-      );
-
-      if (!notebookStack) {
-        // Open the notebook if it isn't open anywhere
-        this.emitLayoutEvent(
-          NotebookEvent.SELECT_NOTEBOOK,
-          session,
-          language,
-          notebookSettings,
-          fileMetadata,
-          true
-        );
-      } else {
-        // Focus the notebook within its stack if it is already open
-        const notebookPanel = LayoutUtils.getContentItemInStack(
-          notebookStack,
-          panelConfig
-        );
-        LayoutUtils.openComponentInStack(notebookStack, notebookPanel.config);
-      }
-    }
   }
 
   sendClearFilter() {
@@ -656,7 +606,6 @@ export class AppMainContainer extends Component {
           layoutSettings={layoutSettings}
           onGoldenLayoutChange={this.handleGoldenLayoutChange}
           onLayoutConfigChange={this.handleLayoutConfigChange}
-          onLayoutInitialized={this.openNotebookFromURL}
         >
           <GridPlugin
             hydrate={this.hydrateGrid}
@@ -696,15 +645,8 @@ AppMainContainer.propTypes = {
   activeTool: PropTypes.string.isRequired,
   dashboardData: PropTypes.shape({}).isRequired,
   layoutStorage: PropTypes.shape({}).isRequired,
-  match: PropTypes.shape({
-    params: PropTypes.shape({ notebookPath: PropTypes.string }),
-  }).isRequired,
   session: APIPropTypes.IdeSession.isRequired,
   sessionLanguage: PropTypes.string.isRequired,
-  sessionConfig: PropTypes.shape({
-    type: PropTypes.string,
-    id: PropTypes.string,
-  }).isRequired,
   setActiveTool: PropTypes.func.isRequired,
   updateWorkspaceData: PropTypes.func.isRequired,
   user: APIPropTypes.User.isRequired,
@@ -728,7 +670,6 @@ const mapStateToProps = state => {
     dashboardData: getDashboardData(state, DEFAULT_DASHBOARD_ID),
     layoutStorage: getLayoutStorage(state),
     session,
-    sessionConfig,
     sessionLanguage,
     user: getUser(state),
     workspace: getWorkspace(state),
@@ -738,4 +679,4 @@ const mapStateToProps = state => {
 export default connect(mapStateToProps, {
   setActiveTool: setActiveToolAction,
   updateWorkspaceData: updateWorkspaceDataAction,
-})(withRouter(AppMainContainer));
+})(AppMainContainer);

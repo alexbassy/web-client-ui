@@ -1,6 +1,5 @@
 import deepEqual from 'deep-equal';
 import shortid from 'shortid';
-import isMatch from 'lodash.ismatch';
 import Log from '@deephaven/log';
 import GoldenLayoutThemeExport from './GoldenLayoutThemeExport';
 
@@ -85,7 +84,6 @@ class LayoutUtils {
   }
 
   /**
-   * Gets the first stack which contains a contentItem with the given config values
    * @param {ContentItem} item Golden layout content item to search for the stack
    * @param {Config} config The item properties to match
    */
@@ -101,7 +99,16 @@ class LayoutUtils {
     for (let i = 0; i < item.contentItems.length; i += 1) {
       const contentItem = item.contentItems[i];
       if (contentItem.isComponent && contentItem.config) {
-        if (isMatch(contentItem.config, config)) {
+        let isMatch = true;
+        const keys = Object.keys(config);
+        for (let k = 0; k < keys.length; k += 1) {
+          const key = keys[k];
+          if (config[key] !== contentItem.config[key]) {
+            isMatch = false;
+            break;
+          }
+        }
+        if (isMatch) {
           return item;
         }
       }
@@ -182,7 +189,7 @@ class LayoutUtils {
   }
 
   /**
-   * Gets first content item with the specified config in stack.
+   * Gets content item with the specified config in stack.
    * @param {ContentItem} stack The stack to search for the item
    * @param {Config} config The item config type to match, eg. { component: 'IrisGridPanel', title: 'Table Name' }
    * @returns {ContentItem} Returns the found content item, null if not found.
@@ -191,7 +198,16 @@ class LayoutUtils {
     for (let i = 0; i < stack.contentItems.length; i += 1) {
       const contentItem = stack.contentItems[i];
       if (contentItem.isComponent && contentItem.config) {
-        if (isMatch(contentItem.config, config)) {
+        let isMatch = true;
+        const keys = Object.keys(config);
+        for (let k = 0; k < keys.length; k += 1) {
+          const key = keys[k];
+          if (config[key] !== contentItem.config[key]) {
+            isMatch = false;
+            break;
+          }
+        }
+        if (isMatch) {
           return contentItem;
         }
       }
